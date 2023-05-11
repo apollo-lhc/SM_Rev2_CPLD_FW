@@ -28,7 +28,7 @@ quit
 
 
 def parse_cli():
-    """Parse command line arguments and make some checks on the arguments."""
+    """Parse command line aruiguments and make some checks on the arguments."""
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--VIVADO_SOURCE', default="/work/Xilinx/Vivado/2020.2/settings64.sh", help='path to vivado sourcing script')
@@ -40,7 +40,8 @@ def parse_cli():
     parser.add_argument('--xvc_ip'  , default=None, help='IP of xvc server for CPLD')
     parser.add_argument('--xvc_port', default=2545, help='port of xvc server for CPLD')
     parser.add_argument('--jed_file', default=None, help='jed file to program the CPLD')
-
+    parser.add_argument('--gui',default=False)
+    
     args = parser.parse_args()
 
     return args
@@ -70,7 +71,10 @@ def main():
                                          xvc_port=args.xvc_port)
     )
     outFile.close()
-    xvc_cmd="source "+args.VIVADO_SOURCE+";vivado -mode tcl  -source "+outFileName1
+    if not args.gui:
+        xvc_cmd="source "+args.VIVADO_SOURCE+";vivado -mode tcl  -source "+outFileName1
+    else:
+        xvc_cmd="source "+args.VIVADO_SOURCE+";vivado -mode gui  -source "+outFileName1
     print(xvc_cmd)
     xvc_proc = subprocess.Popen(xvc_cmd,
                                 shell=True,
@@ -81,7 +85,7 @@ def main():
     
 
     #wait for xvc to be loaded
-    while(True):
+    while(not args.gui):
         outs = xvc_proc.stdout.readline()
         if outs == None:
             continue
@@ -91,7 +95,8 @@ def main():
         if outs.find('xvc running') > -1:
             break
 
-        
+
+    time.sleep(30)
     #############################################################################
     #Prog
     #############################################################################
@@ -103,7 +108,10 @@ def main():
     ))
     outFile.close()
 
-    ise_cmd="source "+args.ISE_SOURCE+"; impact -batch "+outFileName2
+    if not args.gui:    
+        ise_cmd="source "+args.ISE_SOURCE+"; impact -batch "+outFileName2
+    else:
+        ise_cmd="source "+args.ISE_SOURCE+"; impact"
     print(ise_cmd)
     ise_proc = subprocess.Popen(ise_cmd,shell=True,preexec_fn=os.setsid)
 

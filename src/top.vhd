@@ -36,7 +36,8 @@ entity top is
     cable_present_n   : in  std_logic;
     GPIO              : in  std_logic_vector(3 downto 0);
     IPMC_UART         : in  std_logic_vector(3 downto 0);
-    Zynq_GPIO         : in  std_logic_vector(3 downto 0);
+    Zynq_in           : in  std_logic_vector(2 downto 0);
+    Zynq_out          : out std_logic_vector(0 downto 0);
     Mezz1_GPIO        : in  std_logic_vector(1 downto 0);
     Mezz2_GPIO        : in  std_logic_vector(1 downto 0)
     );
@@ -55,8 +56,9 @@ architecture behavioral of top is
   begin  -- architecture behavioral
 
   IPMC_Cable_switch: process (cable_present_n,
-                              Master_Cable_TCK, Master_Cable_TMS,Master_Cable_TDI,
-                              Master_IPMC_TCK, Master_IPMC_TMS,Master_IPMC_TDI
+                              Master_Cable_TCK, Master_Cable_TMS,Master_Cable_TDI, Master_Cable_nRST,
+                              Master_IPMC_TCK, Master_IPMC_TMS,Master_IPMC_TDI,Master_IPMC_nRST,
+										local_Board_TDO
                               ) is
   begin  -- process IPMC_Cable_switch
     if cable_present_n = '0' then
@@ -82,7 +84,8 @@ architecture behavioral of top is
 
   switch: process (sel,mezz_en,zynq_pwr_ngood,
                    Master_Zynq_TCK,Master_Zynq_TMS,Master_Zynq_TDI,Master_Zynq_nRST,
-                   local_Board_TCK,local_Board_TMS,local_Board_TDI,local_Board_nRST)  is
+                   local_Board_TCK,local_Board_TMS,local_Board_TDI,local_Board_nRST,
+						 Slave_Mezz_TDO,Slave_Zynq_TDO)  is
     variable mezzSel : integer range 0 to 1;
   begin  -- process switch
     mezzSel := to_integer(unsigned(sel(0 downto 0)));
@@ -168,6 +171,6 @@ architecture behavioral of top is
     end case;
   end process switch;
 
+  Zynq_out(0) <= Zynq_in(2);
   
-
 end architecture behavioral;
