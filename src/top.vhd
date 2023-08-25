@@ -35,9 +35,12 @@ entity top is
     mezz_en           : in  std_logic_vector(1 downto 0);
     cable_present_n   : in  std_logic;
     GPIO              : in  std_logic_vector(3 downto 0);
-    IPMC_UART         : in  std_logic_vector(3 downto 0);
-    Zynq_in           : in  std_logic_vector(2 downto 0);
-    Zynq_out          : out std_logic_vector(0 downto 0);
+    IPMC_UART_in      : in  std_logic_vector(1 downto 0);
+    IPMC_UART_out     : out std_logic_vector(1 downto 0);
+    Zynq_UART_in      : in  std_logic;
+    Zynq_UART_out     : out std_logic;
+    Zynq_loopback_in  : in  std_logic;
+    Zynq_loopback_out : out std_logic;
     Mezz1_GPIO        : in  std_logic_vector(1 downto 0);
     Mezz2_GPIO        : in  std_logic_vector(1 downto 0)
     );
@@ -109,13 +112,13 @@ architecture behavioral of top is
             Slave_Mezz_TCK(iM)  <= Master_Zynq_TCK(iM);
             Slave_Mezz_TMS(iM)  <= Master_Zynq_TMS(iM);
             Slave_Mezz_TDI(iM)  <= Master_Zynq_TDI(iM);
-            Slave_Mezz_nRST(iM)  <= Master_Zynq_nRST(iM);
+            Slave_Mezz_nRST(iM) <= Master_Zynq_nRST(iM);
             Master_Zynq_TDO(iM) <= Slave_Mezz_TDO(iM);
           else
             Slave_Mezz_TCK(iM)  <= 'Z';
             Slave_Mezz_TMS(iM)  <= 'Z';
             Slave_Mezz_TDI(iM)  <= 'Z';
-            Slave_Mezz_nRST(iM)  <= 'Z';
+            Slave_Mezz_nRST(iM) <= 'Z';
             Master_Zynq_TDO(iM) <= 'Z';              
           end if;
         end loop;  -- iM
@@ -141,13 +144,13 @@ architecture behavioral of top is
           Slave_Mezz_TCK(mezzSel)  <= local_Board_TCK;
           Slave_Mezz_TMS(mezzSel)  <= local_Board_TMS;
           Slave_Mezz_TDI(mezzSel)  <= local_Board_TDI;
-          Slave_Mezz_nRST(mezzSel)  <= local_Board_nRST;
+          Slave_Mezz_nRST(mezzSel) <= local_Board_nRST;
           local_Board_TDO          <= Slave_Mezz_TDO(mezzSel);
         else
           Slave_Mezz_TCK(mezzSel)  <= 'Z';
           Slave_Mezz_TMS(mezzSel)  <= 'Z';
           Slave_Mezz_TDI(mezzSel)  <= 'Z';
-          Slave_Mezz_nRST(mezzSel)  <= 'Z';
+          Slave_Mezz_nRST(mezzSel) <= 'Z';
           local_Board_TDO          <= '0';              
         end if;
         
@@ -156,13 +159,13 @@ architecture behavioral of top is
           Slave_Mezz_TCK(1-mezzSel)  <= Master_Zynq_TCK(1-mezzSel);
           Slave_Mezz_TMS(1-mezzSel)  <= Master_Zynq_TMS(1-mezzSel);
           Slave_Mezz_TDI(1-mezzSel)  <= Master_Zynq_TDI(1-mezzSel);
-          Slave_Mezz_nRST(1-mezzSel)  <= Master_Zynq_nRST(1-mezzSel);
+          Slave_Mezz_nRST(1-mezzSel) <= Master_Zynq_nRST(1-mezzSel);
           Master_Zynq_TDO(1-mezzSel) <= Slave_Mezz_TDO(1-mezzSel);
         else
           Slave_Mezz_TCK(1-mezzSel)  <= 'Z';
           Slave_Mezz_TMS(1-mezzSel)  <= 'Z';
           Slave_Mezz_TDI(1-mezzSel)  <= 'Z';
-          Slave_Mezz_nRST(1-mezzSel)  <= 'Z';
+          Slave_Mezz_nRST(1-mezzSel) <= 'Z';
           Master_Zynq_TDO(1-mezzSel) <= '0';              
         end if;
         
@@ -171,6 +174,14 @@ architecture behavioral of top is
     end case;
   end process switch;
 
-  Zynq_out(0) <= Zynq_in(2);
+  -- debugging to test if the CPLD is up
+  Zynq_loopback_out <= Zynq_loopback_in;
+
+
+  --IPMC UARTs
+  IPMC_UART_out(0) <= Zynq_uart_in;
+  Zynq_uart_out    <= IPMC_UART_in(0);
+
+  IPMC_UART_out(1) <= IPMC_UART_in(1);
   
 end architecture behavioral;
